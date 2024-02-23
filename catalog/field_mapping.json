@@ -1,0 +1,12 @@
+{
+  "nazev": "name",
+  "kod": "code",
+  "zobrazit": "show",
+  "hodnota": "value",
+  "nazev_atributu_id": "attribute_name_id",
+  "hodnota_atributu_id": "attribute_value_id",
+  "cena": "price",
+  "mena": "currency",
+  "obrazek": "image",
+  "obrazek_id": "image_id"
+}

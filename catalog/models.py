@@ -9,25 +9,25 @@ class BaseModel(models.Model):
 
 
 class AttributeName(BaseModel):
-    nazev = models.CharField(max_length=128, default="")
-    kod = models.CharField(max_length=128, default="")
-    zobrazit = models.BooleanField(default=True)
+    name = models.CharField(max_length=128, default="")
+    code = models.CharField(max_length=128, default="")
+    show = models.BooleanField(default=True)
 
 
 class AttributeValue(BaseModel):
-    hodnota = models.CharField(max_length=128, default="")
+    value = models.CharField(max_length=128, default="")
 
 
 class Attribute(BaseModel):
-    nazev_atributu_id = models.ForeignKey(AttributeName, on_delete=models.CASCADE)
-    hodnota_atributu_id = models.ForeignKey(AttributeValue, on_delete=models.CASCADE)
+    attribute_name_id = models.ForeignKey(AttributeName, on_delete=models.CASCADE)
+    attribute_value_id = models.ForeignKey(AttributeValue, on_delete=models.CASCADE)
 
 
 class Product(BaseModel):
-    nazev = models.CharField(max_length=256, default="")
+    name = models.CharField(max_length=256, default="")
     description = models.TextField(default="")
-    cena = models.CharField(max_length=128, default="")
-    mena = models.CharField(max_length=128, default="")
+    price = models.CharField(max_length=128, default="")
+    currency = models.CharField(max_length=128, default="")
     published_on = models.CharField(max_length=256, default="", null=True)
     is_published = models.BooleanField(default=True)
 
@@ -38,17 +38,17 @@ class ProductAttributes(BaseModel):
 
 
 class Image(BaseModel):
-    obrazek = models.TextField(default="")
+    image = models.TextField(default="")
 
 
 class ProductImage(BaseModel):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    obrazek_id = models.ForeignKey(Image, on_delete=models.CASCADE)
-    nazev = models.CharField(max_length=256, default="")
+    image_id = models.ForeignKey(Image, on_delete=models.CASCADE)
+    name = models.CharField(max_length=256, default="")
 
 
 class Catalog(BaseModel):
-    nazev = models.CharField(max_length=256, default="")
-    obrazek_id = models.ForeignKey(Image, on_delete=models.CASCADE)
+    name = models.CharField(max_length=256, default="")
+    image_id = models.ForeignKey(Image, on_delete=models.CASCADE)
     products_ids = models.ManyToManyField(Product)
     attributes_ids = models.ManyToManyField(Attribute)

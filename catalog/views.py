@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 
 from django.http import HttpRequest, JsonResponse
@@ -8,6 +9,9 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 
 from .utils import get_model_class, get_serializer_class, BaseModelSubclass, ModelSerializerSubclass
+
+__dir_location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+FIELD_MAPPING = json.load(open(os.path.join(__dir_location__, "field_mapping.json"), "r"))
 
 
 def _serialize_and_save_item(model_class: BaseModelSubclass, serializer_class: ModelSerializerSubclass,
@@ -65,7 +69,8 @@ def upload_data(request: HttpRequest) -> JsonResponse:
                 print(f"Could not get serializer class for item: {item}", file=sys.stderr)
                 continue
 
-            _serialize_and_save_item(model_class, serializer_class, item_type, item_data)
+            item_data_renamed = {FIELD_MAPPING.get(k, k): v for k, v in item_data.items()}
+            _serialize_and_save_item(model_class, serializer_class, item_type, item_data_renamed)
 
     return JsonResponse({"Message": "Data successfully loaded."}, status=status.HTTP_201_CREATED)
 
@@ -102,7 +107,7 @@ def get_model_entry(request: HttpRequest, model_type: str, model_id: int) -> Jso
 
     entry_data = serializer_class(entry).data
 
-    return JsonResponse({"Data": entry_data}, status=status.HTTP_200_OK)
+    return JsonResponse({model_class.__name__: entry_data}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -133,4 +138,4 @@ def get_all_model_entries(request: HttpRequest, model_type: str) -> JsonResponse
     for entry in model_class.objects.all():
         entries_data.append(serializer_class(entry).data)
 
-    return JsonResponse({"Data": entries_data}, status=status.HTTP_200_OK)
+    return JsonResponse({f"{model_class.__name__}s": entries_data}, status=status.HTTP_200_OK)
