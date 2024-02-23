@@ -1,14 +1,15 @@
 import importlib
-
-from django.apps import apps
 from rest_framework import serializers
-from typing import Optional, Type
+from typing import Optional, Type, TypeVar
+
+from .models import BaseModel
 
 
-ALL_MODELS = list(apps.all_models['catalog'].keys())
+BaseModelSubclass = TypeVar('BaseModelSubclass', bound=BaseModel)
+ModelSerializerSubclass = TypeVar('ModelSerializerSubclass', bound=Type[serializers.ModelSerializer])
 
 
-def get_model_class(class_name: str) -> ALL_MODELS:
+def get_model_class(class_name: str) -> Optional[BaseModelSubclass]:
     """
     Dynamically retrieves a model class for the given class name.
 
@@ -27,7 +28,7 @@ def get_model_class(class_name: str) -> ALL_MODELS:
         return None
 
 
-def get_serializer_class(class_name: str) -> Optional[Type[serializers.ModelSerializer]]:
+def get_serializer_class(class_name: str) -> Optional[ModelSerializerSubclass]:
     """
     Dynamically retrieves a serializer class for the given class name.
 
