@@ -63,3 +63,9 @@ See swagger documentation on http://127.0.0.1:8000/docs/ . There are three endpo
  Accepts JSON body described on top of this page.
 * /catalog/{model_type}/ - Get list of all model instances.
 * /catalog/{model_type}/{model_id}/ - Get specific model instance.
+
+## Tests
+There are some unit tests provided for the application.
+To run the tests, run following command: 
+
+`python manage.py test`

@@ -1,7 +1,6 @@
 import json
+import logging
 import os
-import sys
-
 from django.http import HttpRequest, JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -12,6 +11,10 @@ from .utils import get_model_class, get_serializer_class, BaseModelSubclass, Mod
 
 __dir_location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 FIELD_MAPPING = json.load(open(os.path.join(__dir_location__, "field_mapping.json"), "r"))
+
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
+                    datefmt='%d-%b-%y %H:%M:%S',
+                    level=logging.INFO)
 
 
 def _serialize_and_save_item(model_class: BaseModelSubclass, serializer_class: ModelSerializerSubclass,
@@ -25,8 +28,8 @@ def _serialize_and_save_item(model_class: BaseModelSubclass, serializer_class: M
     if serializer.is_valid():
         serializer.save()
     else:
-        print(serializer.errors)
-        print(f"Could not save {item_type} model with following data: {item_data}.", file=sys.stderr)
+        logging.warning(serializer.errors)
+        logging.warning(f"Could not save {item_type} model with following data: {item_data}.")
 
 
 @swagger_auto_schema(
@@ -53,6 +56,7 @@ def upload_data(request: HttpRequest) -> JsonResponse:
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
+        logging.error("Data are not valid JSON.")
         return JsonResponse({"Message": "Data are not valid JSON."}, status=status.HTTP_400_BAD_REQUEST)
 
     for item in data:
@@ -60,13 +64,13 @@ def upload_data(request: HttpRequest) -> JsonResponse:
             # Get the appropriate model class
             model_class = get_model_class(item_type)
             if not model_class:
-                print(f"Could not get model class for item: {item}", file=sys.stderr)
+                logging.warning(f"Could not get model class for item: {item}")
                 continue
 
             # Get the appropriate serializer class
             serializer_class = get_serializer_class(item_type)
             if not serializer_class:
-                print(f"Could not get serializer class for item: {item}", file=sys.stderr)
+                logging.warning(f"Could not get serializer class for item: {item}")
                 continue
 
             item_data_renamed = {FIELD_MAPPING.get(k, k): v for k, v in item_data.items()}
@@ -91,17 +95,20 @@ def get_model_entry(request: HttpRequest, model_type: str, model_id: int) -> Jso
     """
     model_class = get_model_class(model_type)
     if not model_class:
+        logging.error(f"Could not find model class for {model_type}.")
         return JsonResponse({"Message": f"Could not find model class for {model_type}."},
                             status=status.HTTP_404_NOT_FOUND)
 
     serializer_class = get_serializer_class(model_type)
     if not serializer_class:
+        logging.error(f"Could not find serializer for {model_type}")
         return JsonResponse({"Message": f"Could not find serializer for {model_type}"},
                             status=status.HTTP_404_NOT_FOUND)
 
     try:
         entry = model_class.objects.get(pk=model_id)
     except model_class.DoesNotExist:
+        logging.error(f"Could not find {model_type} with id {model_id}")
         return JsonResponse({"Message": f"Could not find {model_type} with id {model_id}"},
                             status=status.HTTP_404_NOT_FOUND)
 
@@ -126,11 +133,13 @@ def get_all_model_entries(request: HttpRequest, model_type: str) -> JsonResponse
     model_class = get_model_class(model_type)
 
     if not model_class:
+        logging.error(f"Could not find model class for {model_type}.")
         return JsonResponse({"Message": f"Could not find model class for {model_type}."},
                             status=status.HTTP_404_NOT_FOUND)
 
     serializer_class = get_serializer_class(model_type)
     if not serializer_class:
+        logging.error(f"Could not find serializer for {model_type}")
         return JsonResponse({"Message": f"Could not find serializer for {model_type}"},
                             status=status.HTTP_404_NOT_FOUND)
 
